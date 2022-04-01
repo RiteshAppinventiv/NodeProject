@@ -1,36 +1,36 @@
-import UserDatail from "../model/userdetail";
-import express, { Request, Response } from "express";
-import bcrypt from 'bcryptjs';
+import userModel from "../model/userDetail";
+import { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
 import md5 from "md5";
+import userSignin from "../jwt/userLogin.jwt";
 
-class connection {
+
+class userConnection {
     signup = async (req: Request, res: Response) => {
         try {
-            let { username, password, avtar_img, location, phone, status } = req.body;
-            const passwordHash =md5(password.toString());
-            console.log()
-            let newUser = new UserDatail({
+            let { username, password, avtarImg, location, phone, status } = req.body;
+            const passwordHash:string = md5(password.toString());
+            let newUser = new userModel({
                 username: username,
                 password: passwordHash,
-                avtar_img: avtar_img,
+                avtarImg: avtarImg,
                 location: location,
                 phone: phone,
                 status: status
             })
-
+            // UPDATE USER DATA IN OUR DATABASE 
             const data = await newUser.save();
-            res.status(200).json({ userdata: data })
+            res.status(200).json({ userData: data })
         }
         catch (err) {
             if (req.body.username == "") {
-                res.status(400).json({ Error: "Invalid Username" })
+                res.status(400).json({ Error: "user name is invalid"})
             }
             else if (req.cookies.username != '') {
-                res.status(400).json({ Error: "U r already logged in" })
+                res.status(400).json({ Error: "User name already exist"})
             }
             else {
-                res.status(400).json({ Error: "User Name already Exist..Enter Another UserName" })
+                res.status(400).json({ Error: err})
             }
         }
     }
@@ -42,41 +42,39 @@ class connection {
 
             let { username, password } = req.body
             let encryptedPassword: string;
-            let passwordmatch: boolean = false;
+            let isPasswordMatch: boolean = false;
 
             // SEARCHING FROM OUR DB:
-            let Userdata = await UserDatail.findOne({ username: username });
-            if(Userdata?.password==md5(password.toString())){
-                passwordmatch=true;
+            let userData = await userModel.findOne({ username: username });
+            if (userData?.password == md5(password.toString())) {
+                isPasswordMatch = true;
             }
-            let id = Userdata?.id.toString();
-            if (Userdata == null) {
+            let id = userData?.id.toString();
+            if (userData == null) {
                 res.status(400).json({ Error: "Invalid UserName" })
             }
 
-            if (Userdata?.password == null) {
+            if (userData?.password == null) {
                 encryptedPassword = "";
             }
             else {
-                encryptedPassword = Userdata.password.toString()
+                encryptedPassword = userData.password.toString()
 
                 // VERIFY PASSWORD:-
-                // passwordmatch = await bcrypt.compare(password, encryptedPassword)
-                if(Userdata?.password==md5(password.toString())){
-                    passwordmatch=true;
+
+                if (userData?.password == md5(password.toString())) {
+                    isPasswordMatch = true;
                 }
-                console.log(passwordmatch)
-                if (passwordmatch != true) {
+                if (!isPasswordMatch) {
                     res.status(400).json({ Error: "Invalid Password" })
                 }
 
                 let maxAge: number = 7 * 24 * 60 * 60;
-                const token = Jwt.sign({ id }, 'secret id', { expiresIn: maxAge });
-
+                const token=userSignin(id)
                 // STORE USER DATA IN BROWSER COOKIES
                 res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 })
-                res.cookie('username', Userdata.username, { httpOnly: true, maxAge: maxAge * 1000 })
-                res.status(201).json({ user: `Welcome ${Userdata.username}` })
+                res.cookie('username', userData.username, { httpOnly: true, maxAge: maxAge * 1000 })
+                res.status(201).json({ user: `Welcome ${userData.username}` })
 
             }
         }
@@ -86,58 +84,52 @@ class connection {
     }
 
     profile = async (req: Request, res: Response) => {
-        const userProfile = await UserDatail.findOne({ username: req.cookies.username })
+        const userProfile = await userModel.findOne({username:req.cookies.username})
         res.json({
             username: userProfile?.username,
-            avatarImg: userProfile?.avtar_img,
+            avatarImg: userProfile?.avtarImg,
             location: userProfile?.location,
-            Phone: userProfile?.phone,
-            Status:userProfile?.status
+            phone: userProfile?.phone,
+            status: userProfile?.status
         })
     }
 
     logout = (req: Request, res: Response) => {
         res.cookie('jwt', '', { maxAge: 1 })
         res.cookie('username', '', { maxAge: 1 })
-        res.json({ Status: "Logout Sucessfully" });
+        res.json({ Status: "Logout sucessfully" });
     }
 
     update = async (req: Request, res: Response) => {
         try {
-            const oldName = req.cookies.username;
+            const oldName: string = req.cookies.username;
             let maxAge: number = 7 * 24 * 60 * 60;
-            const result = await UserDatail.findOne({ username: oldName })
-            let { username, password, avtar_img, location, phone, status } = req.body;
-            if(username==undefined){
-                username=result?.username;
-                console.log("User name")
-            }
-            
+            let { username, password, avtarImg, location, phone, status } = req.body;
 
             if (password != null) {
                 const passwordHash = md5(password.toString());
                 console.log("password changed")
                 res.cookie('username', username, { httpOnly: true, maxAge: maxAge * 1000 })
-                const result = await UserDatail.updateOne({ username: oldName }, {
+                const result = await userModel.updateOne({ username: oldName }, {
                     $set: {
                         username: username,
                         password: passwordHash,
-                        avtar_img: avtar_img,
+                        avtarImg: avtarImg,
                         location: location,
                         phone: phone,
-                        status:status
+                        status: status
                     }
                 });
 
-                res.json({ Status: "Update Sucessfully.." })
+                res.json({ Status: "Update Sucessfully..."})
                 console.log(result)
 
             }
             else {
                 res.cookie('username', username, { httpOnly: true, maxAge: maxAge * 1000 })
-                const result = await UserDatail.updateOne({username: oldName},req.body);
+                const result = await userModel.updateOne({ username: oldName }, req.body);
 
-                res.json({ Status: "Update Sucessfully.." })
+                res.json({ Status: "Update Sucessfully..."})
                 console.log(result)
             }
         } catch (err) {
@@ -151,10 +143,9 @@ class connection {
                 res.json({ Status: "Please login for delete Your account" })
             }
             else {
-                const result = await UserDatail.deleteOne({ username: req.cookies.username })
+                const result = await userModel.deleteOne({ username: req.cookies.username })
                 res.cookie('jwt', '', { maxAge: 1 })
                 res.cookie('username', '', { maxAge: 1 })
-                console.log(result)
                 res.json({ Status: "Delete Sucessfully.." })
             }
         }
@@ -162,13 +153,12 @@ class connection {
     }
 
     status = async (req: Request, res: Response) => {
-        if (req.cookies.username !=null) {
-            const result = await UserDatail.findOne({ username: req.cookies.username })
-            console.log(result?.status)
-            if (result?.status){
+        if (req.cookies.username != null) {
+            const result = await userModel.findOne({ username: req.cookies.username })
+            if (result?.status) {
                 res.json({ status: "Activate" })
             }
-            else{
+            else {
                 res.json({ status: "Deactivate" })
             }
         }
@@ -176,33 +166,28 @@ class connection {
             res.json({ status: "plz logged in to view ur status..." })
         }
     }
+
     deactivate = async (req: Request, res: Response) => {
         if (req.cookies.username != null) {
-            const result = await UserDatail.updateOne({ username: req.cookies.username },
-                {$set:{status: 0}});
-            res.json({status:"Account Deactivate..."})
-            console.log(result)
+            const result = await userModel.updateOne({ username: req.cookies.username },
+                { $set: { status: 0 } });
+            res.json({ status: "Account Deactivate..." })
         }
         else {
-            res.json({ status: "plz logged in to view ur status..." })
+            res.json({ status: "Please Login..."})
         }
     }
 
     reactivate = async (req: Request, res: Response) => {
         if (req.cookies.username != null) {
-            const result = await UserDatail.updateOne({ username: req.cookies.username },
-                {$set:{status: 1}});
-            res.json({status:"Account Activate"})
-            console.log(result)
+            const result = await userModel.updateOne({ username: req.cookies.username },
+                { $set: { status: 1 } });
+            res.json({ status: "Account Activate" })
         }
         else {
-            res.json({ status: "plz logged in to view ur status..." })
+            res.json({ status: "Please Login..."})
         }
     }
-
-    publish=async (req: Request, res: Response) => {
-
-    }
 }
-//
-export default connection;
+
+export default userConnection;

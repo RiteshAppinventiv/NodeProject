@@ -1,30 +1,30 @@
-import express,{Request,Response} from "express";
+import express from "express";
 import cookieParser from "cookie-parser";
 import requireAuth from "../authMiddleware/authMiddleware";
 import connection from "../controller/controller";
 
-const newconnection=new connection();
+const connections=new connection();
 // CREATING ROUTES
 
 const router=express.Router();
 router.use(cookieParser());
 
-router.post('/signup',newconnection.signup)
+router.post('/signup',connections.signup)
 
-router.post('/login',newconnection.login)
+router.post('/login',connections.login)
 
-router.post('/profile',requireAuth,newconnection.profile)
+router.post('/profile',requireAuth,connections.profile)
 
-router.post('/logout',requireAuth,newconnection.logout)
+router.post('/logout',requireAuth,connections.logout)
 
-router.post('/update',requireAuth,newconnection.update);
+router.post('/update',requireAuth,connections.update);
 
-router.post('/delete',requireAuth,newconnection.delete);
+router.post('/delete',requireAuth,connections.delete);
 
-router.post('/status',newconnection.status);
+router.post('/status',connections.status);
 
-router.post('/deactivate',newconnection.deactivate);
+router.post('/deactivate',connections.deactivate);
 
-router.post('/reactivate',newconnection.reactivate);
+router.post('/reactivate',connections.reactivate);
 
 export default router;

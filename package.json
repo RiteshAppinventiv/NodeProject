@@ -1,29 +1,27 @@
 {
-  "name": "task1.1",
+  "name": "user-detail",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Node Seven API Task",
+  "main": "app.ts",
+  "dev": "nodemon --config nodemon.json /src/server/app.ts",
+
   "scripts": {
+    "dev": "nodemon src/server/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/bcryptjs": "^2.4.2",
     "@types/cookie-parser": "^1.4.2",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/md5": "^2.3.2",
-    "@types/npm": "^7.19.0",
-    "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.0",
     "express": "^4.17.3",
-    "i": "^0.3.7",
     "jsonwebtoken": "^8.5.1",
     "md5": "^2.3.0",
-    "mongoose": "^6.2.7",
-    "mosca": "^2.8.3",
-    "mqtt": "^4.3.7"
+    "mongoose": "^6.2.7"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
