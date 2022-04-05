@@ -1,17 +1,18 @@
 import router from "../api/api";
-import db from "../connection/connection";
-import UserDatail from "../model/userdetail";
+import database from "../connection/connection";
+import userDetail from "../model/userDetail";
 import express from "express"
+import * as dotenv from "dotenv";
+dotenv.config({ path: '../../.env'});  
 
-
-db
-UserDatail
+database
+userDetail
 router
 
 const app=express();
 app.use(express.json())
 app.use(router)
-const port=8001
+const port = (process.env.PORT);
 
 app.listen(port,()=>{
     console.log("Server is running on port no:-"+port)

@@ -1,13 +1,19 @@
 import mongoose from "mongoose";
-var url="mongodb://localhost:27017/NewFb";
+import * as dotenv from "dotenv";
+dotenv.config({ path: '../../.env'});
 
+var url:string=String(process.env.databaseUrl);
+
+// DATABASE CONNECTION
+
+console.log()
 mongoose.connect(url);
-var db=mongoose.connection;
+var databaseConnection=mongoose.connection;
 
 // CONNECTING TO DATABASE:
-db.on("error", console.error.bind(console, "connection error:")); //event Listener
-db.once("open", function () {    //Event listener 
+databaseConnection.on("error", console.error.bind(console, "connection error:")); //event Listener
+databaseConnection.once("open", function () {    //Event listener 
   console.log("Connection Successful!");
 });
 
-export default db;
+export default databaseConnection;
